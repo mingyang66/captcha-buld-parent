@@ -81,7 +81,7 @@ public class ClickCaptchaService {
         }
 
         // 6. 存入内存（带过期时间戳）
-        long expireAt = System.currentTimeMillis() + properties.getExpireSeconds() * 1000L;
+        long expireAt = System.currentTimeMillis() + properties.getExpiryTime().toMillis();
         store.put(captchaId, new CaptchaSession(targetChars, targetPoints, expireAt));
 
         // 7. 图片编码为 Base64
@@ -109,18 +109,21 @@ public class ClickCaptchaService {
         if (captchaId == null || clicks == null) {
             return false;
         }
+        //1. 从会话存储中移除验证码会话数据
         CaptchaSession session = store.remove(captchaId);
         if (session == null) {
             return false;
         }
-        // 检查是否已过期
+        //2. 检查验证码是否已过期
         if (System.currentTimeMillis() > session.expireAt) {
             return false;
         }
+        //3. 检查点击目标数量是否一致
         List<ClickPoint> targets = session.targetPoints;
         if (clicks.size() != targets.size()) {
             return false;
         }
+        //4. 检查每个点击目标的坐标是否在容差范围内
         int tolerance = properties.getTolerance();
         for (int i = 0; i < targets.size(); i++) {
             ClickPoint expected = targets.get(i);

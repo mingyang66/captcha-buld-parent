@@ -2,6 +2,8 @@ package com.emily.captcha;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.time.Duration;
+
 /**
  * 验证码配置属性
  */
@@ -58,7 +60,7 @@ public class CaptchaProperties {
     /**
      * 验证码过期时间（秒）
      */
-    private int expireSeconds = 120;
+    private Duration expiryTime = Duration.ofSeconds(120);
 
     /**
      * 点击容差（像素），判定点击是否命中字符中心
@@ -131,12 +133,12 @@ public class CaptchaProperties {
         this.noisePointCount = noisePointCount;
     }
 
-    public int getExpireSeconds() {
-        return expireSeconds;
+    public Duration getExpiryTime() {
+        return expiryTime;
     }
 
-    public void setExpireSeconds(int expireSeconds) {
-        this.expireSeconds = expireSeconds;
+    public void setExpiryTime(Duration expiryTime) {
+        this.expiryTime = expiryTime;
     }
 
     public int getTolerance() {
