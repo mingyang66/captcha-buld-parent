@@ -1,0 +1,157 @@
+package com.emily.captcha;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+/**
+ * 验证码配置属性
+ */
+@ConfigurationProperties(prefix = CaptchaProperties.PREFIX)
+public class CaptchaProperties {
+    /**
+     * 配置属性前缀
+     */
+    public static final String PREFIX = "spring.emily.captcha";
+    /**
+     * 是否启用
+     */
+    private boolean enabled = true;
+    /**
+     * 图片宽度
+     */
+    private int width = 320;
+
+    /**
+     * 图片高度
+     */
+    private int height = 160;
+
+    /**
+     * 图片中显示的字符总数
+     */
+    private int charCount = 5;
+
+    /**
+     * 需要用户按顺序点击的目标字符数
+     */
+    private int targetCount = 3;
+
+    /**
+     * 字体最小尺寸
+     */
+    private int fontSizeMin = 22;
+
+    /**
+     * 字体最大尺寸
+     */
+    private int fontSizeMax = 30;
+
+    /**
+     * 干扰线数量
+     */
+    private int noiseLineCount = 6;
+
+    /**
+     * 干扰点数量
+     */
+    private int noisePointCount = 30;
+
+    /**
+     * 验证码过期时间（秒）
+     */
+    private int expireSeconds = 120;
+
+    /**
+     * 点击容差（像素），判定点击是否命中字符中心
+     */
+    private int tolerance = 20;
+
+    // ---------- getters & setters ----------
+
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    public int getCharCount() {
+        return charCount;
+    }
+
+    public void setCharCount(int charCount) {
+        this.charCount = charCount;
+    }
+
+    public int getTargetCount() {
+        return targetCount;
+    }
+
+    public void setTargetCount(int targetCount) {
+        this.targetCount = targetCount;
+    }
+
+    public int getFontSizeMin() {
+        return fontSizeMin;
+    }
+
+    public void setFontSizeMin(int fontSizeMin) {
+        this.fontSizeMin = fontSizeMin;
+    }
+
+    public int getFontSizeMax() {
+        return fontSizeMax;
+    }
+
+    public void setFontSizeMax(int fontSizeMax) {
+        this.fontSizeMax = fontSizeMax;
+    }
+
+    public int getNoiseLineCount() {
+        return noiseLineCount;
+    }
+
+    public void setNoiseLineCount(int noiseLineCount) {
+        this.noiseLineCount = noiseLineCount;
+    }
+
+    public int getNoisePointCount() {
+        return noisePointCount;
+    }
+
+    public void setNoisePointCount(int noisePointCount) {
+        this.noisePointCount = noisePointCount;
+    }
+
+    public int getExpireSeconds() {
+        return expireSeconds;
+    }
+
+    public void setExpireSeconds(int expireSeconds) {
+        this.expireSeconds = expireSeconds;
+    }
+
+    public int getTolerance() {
+        return tolerance;
+    }
+
+    public void setTolerance(int tolerance) {
+        this.tolerance = tolerance;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+}
