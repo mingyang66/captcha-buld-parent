@@ -6,11 +6,11 @@ public class DefaultClickStoreServiceImpl implements ClickStoreService {
     /**
      * 存储验证码会话数据：captchaId -> CaptchaSession
      */
-    private final ConcurrentHashMap<String, CaptchaSession> store = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ClickCaptchaSession> store = new ConcurrentHashMap<>();
 
     @Override
-    public void put(String key, CaptchaSession value) {
-        store.put(key, new CaptchaSession(value.getTargetChars(), value.getTargetPoints(), value.getExpireAt()));
+    public void put(String key, ClickCaptchaSession value) {
+        store.put(key, new ClickCaptchaSession(value.getTargetChars(), value.getTargetPoints(), value.getExpireAt()));
     }
 
     @Override
@@ -20,7 +20,7 @@ public class DefaultClickStoreServiceImpl implements ClickStoreService {
     }
 
     @Override
-    public CaptchaSession remove(String key) {
+    public ClickCaptchaSession remove(String key) {
         return store.remove(key);
     }
 }

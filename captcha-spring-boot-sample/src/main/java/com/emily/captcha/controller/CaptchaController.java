@@ -3,6 +3,8 @@ package com.emily.captcha.controller;
 import com.emily.captcha.click.model.ClickCaptcha;
 import com.emily.captcha.click.model.ClickPoint;
 import com.emily.captcha.click.service.ClickCaptchaService;
+import com.emily.captcha.rotate.model.RotateCaptcha;
+import com.emily.captcha.rotate.service.RotateCaptchaService;
 import com.emily.captcha.slider.model.SliderCaptcha;
 import com.emily.captcha.slider.service.SliderCaptchaService;
 import org.springframework.web.bind.annotation.*;
@@ -20,10 +22,14 @@ public class CaptchaController {
 
     private final ClickCaptchaService captchaService;
     private final SliderCaptchaService sliderCaptchaService;
+    private final RotateCaptchaService rotateCaptchaService;
 
-    public CaptchaController(ClickCaptchaService captchaService, SliderCaptchaService sliderCaptchaService) {
+    public CaptchaController(ClickCaptchaService captchaService,
+                             SliderCaptchaService sliderCaptchaService,
+                             RotateCaptchaService rotateCaptchaService) {
         this.captchaService = captchaService;
         this.sliderCaptchaService = sliderCaptchaService;
+        this.rotateCaptchaService = rotateCaptchaService;
     }
 
     /**
@@ -101,6 +107,42 @@ public class CaptchaController {
         return result;
     }
 
+    // ==================== 旋转验证码接口 ====================
+
+    /**
+     * 获取一个新的旋转验证码
+     * GET /captcha/rotate/generate
+     */
+    @GetMapping("/rotate/generate")
+    public Map<String, Object> rotateGenerate() {
+        RotateCaptcha captcha = rotateCaptchaService.generate();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("code", 200);
+        result.put("message", "success");
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("captchaId", captcha.getCaptchaId());
+        data.put("image", captcha.getImage());
+        result.put("data", data);
+        return result;
+    }
+
+    /**
+     * 校验用户旋转角度
+     * POST /captcha/rotate/verify
+     * Body: { "captchaId": "xxx", "angle": 180 }
+     */
+    @PostMapping("/rotate/verify")
+    public Map<String, Object> rotateVerify(@RequestBody RotateVerifyRequest request) {
+        boolean success = rotateCaptchaService.verify(request.getCaptchaId(), request.getAngle());
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("code", success ? 200 : 400);
+        result.put("message", success ? "验证通过" : "验证失败，请重新旋转");
+        return result;
+    }
+
     /**
      * 校验请求体
      */
@@ -146,6 +188,30 @@ public class CaptchaController {
 
         public void setX(int x) {
             this.x = x;
+        }
+    }
+
+    /**
+     * 旋转验证码校验请求体
+     */
+    public static class RotateVerifyRequest {
+        private String captchaId;
+        private int angle;
+
+        public String getCaptchaId() {
+            return captchaId;
+        }
+
+        public void setCaptchaId(String captchaId) {
+            this.captchaId = captchaId;
+        }
+
+        public int getAngle() {
+            return angle;
+        }
+
+        public void setAngle(int angle) {
+            this.angle = angle;
         }
     }
 }

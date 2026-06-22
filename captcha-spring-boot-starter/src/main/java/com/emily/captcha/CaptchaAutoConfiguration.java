@@ -3,6 +3,9 @@ package com.emily.captcha;
 import com.emily.captcha.click.service.ClickCaptchaService;
 import com.emily.captcha.click.store.ClickStoreService;
 import com.emily.captcha.click.store.DefaultClickStoreServiceImpl;
+import com.emily.captcha.rotate.service.RotateCaptchaService;
+import com.emily.captcha.rotate.store.DefaultRotateStoreServiceImpl;
+import com.emily.captcha.rotate.store.RotateStoreService;
 import com.emily.captcha.slider.service.SliderCaptchaService;
 import com.emily.captcha.slider.store.DefaultSliderStoreServiceImpl;
 import com.emily.captcha.slider.store.SliderStoreService;
@@ -47,6 +50,17 @@ public class CaptchaAutoConfiguration {
         return new DefaultSliderStoreServiceImpl();
     }
 
+    @Bean
+    public RotateCaptchaService rotateCaptchaService(CaptchaProperties properties, RotateStoreService rotateStoreService) {
+        return new RotateCaptchaService(properties, rotateStoreService);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public RotateStoreService rotateStoreService() {
+        return new DefaultRotateStoreServiceImpl();
+    }
+
     /**
      * 定时清理过期验证码，每 60 秒执行一次
      */
@@ -56,17 +70,21 @@ public class CaptchaAutoConfiguration {
 
         private final ClickStoreService storeService;
         private final SliderStoreService sliderStoreService;
+        private final RotateStoreService rotateStoreService;
 
         CaptchaCleanupConfiguration(ClickStoreService storeService,
-                                    SliderStoreService sliderStoreService) {
+                                    SliderStoreService sliderStoreService,
+                                    RotateStoreService rotateStoreService) {
             this.storeService = storeService;
             this.sliderStoreService = sliderStoreService;
+            this.rotateStoreService = rotateStoreService;
         }
 
         @Scheduled(fixedDelay = 60_000)
         public void cleanExpiredCaptcha() {
             storeService.cleanExpired();
             sliderStoreService.cleanExpired();
+            rotateStoreService.cleanExpired();
         }
     }
 }

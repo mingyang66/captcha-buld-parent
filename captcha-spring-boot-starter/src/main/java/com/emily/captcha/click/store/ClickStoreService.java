@@ -4,7 +4,7 @@ public interface ClickStoreService {
     /**
      * 存储key-value
      */
-    void put(String key, CaptchaSession value);
+    void put(String key, ClickCaptchaSession value);
 
     /**
      * 移除已经过期的key
@@ -14,5 +14,5 @@ public interface ClickStoreService {
     /**
      * 移除指定key
      */
-    CaptchaSession remove(String key);
+    ClickCaptchaSession remove(String key);
 }

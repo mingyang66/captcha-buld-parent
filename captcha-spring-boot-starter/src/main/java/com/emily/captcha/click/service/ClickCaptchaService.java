@@ -3,7 +3,7 @@ package com.emily.captcha.click.service;
 import com.emily.captcha.CaptchaProperties;
 import com.emily.captcha.click.model.ClickCaptcha;
 import com.emily.captcha.click.model.ClickPoint;
-import com.emily.captcha.click.store.CaptchaSession;
+import com.emily.captcha.click.store.ClickCaptchaSession;
 import com.emily.captcha.click.store.ClickStoreService;
 
 import javax.imageio.ImageIO;
@@ -81,7 +81,7 @@ public class ClickCaptchaService {
 
         // 6. 存入内存（带过期时间戳）
         long expireAt = System.currentTimeMillis() + properties.getClick().getExpiryTime().toMillis();
-        clickStoreService.put(captchaId, new CaptchaSession(targetChars, targetPoints, expireAt));
+        clickStoreService.put(captchaId, new ClickCaptchaSession(targetChars, targetPoints, expireAt));
 
         // 7. 图片编码为 Base64
         String base64 = encodeBase64(image);
@@ -109,7 +109,7 @@ public class ClickCaptchaService {
             return false;
         }
         //1. 从会话存储中移除验证码会话数据
-        CaptchaSession session = clickStoreService.remove(captchaId);
+        ClickCaptchaSession session = clickStoreService.remove(captchaId);
         if (session == null) {
             return false;
         }

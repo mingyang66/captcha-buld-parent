@@ -25,6 +25,10 @@ public class CaptchaProperties {
      * 滑动验证码配置
      */
     private Slider slider = new Slider();
+    /**
+     * 旋转验证码配置
+     */
+    private Rotate rotate = new Rotate();
 
     public boolean isEnabled() {
         return enabled;
@@ -48,6 +52,14 @@ public class CaptchaProperties {
 
     public void setSlider(Slider slider) {
         this.slider = slider;
+    }
+
+    public Rotate getRotate() {
+        return rotate;
+    }
+
+    public void setRotate(Rotate rotate) {
+        this.rotate = rotate;
     }
 
     public static class Click {
@@ -229,6 +241,101 @@ public class CaptchaProperties {
 
         public void setHeight(int height) {
             this.height = height;
+        }
+
+        public int getTolerance() {
+            return tolerance;
+        }
+
+        public void setTolerance(int tolerance) {
+            this.tolerance = tolerance;
+        }
+
+        public int getNoiseLineCount() {
+            return noiseLineCount;
+        }
+
+        public void setNoiseLineCount(int noiseLineCount) {
+            this.noiseLineCount = noiseLineCount;
+        }
+
+        public int getNoisePointCount() {
+            return noisePointCount;
+        }
+
+        public void setNoisePointCount(int noisePointCount) {
+            this.noisePointCount = noisePointCount;
+        }
+
+        public Duration getExpiryTime() {
+            return expiryTime;
+        }
+
+        public void setExpiryTime(Duration expiryTime) {
+            this.expiryTime = expiryTime;
+        }
+    }
+
+    // ---------- 旋转验证码配置 ----------
+
+    public static class Rotate {
+        /**
+         * 圆形图片尺寸（像素）
+         */
+        private int size = 200;
+
+        /**
+         * 最小旋转角度（度）
+         */
+        private int minAngle = 30;
+
+        /**
+         * 最大旋转角度（度）
+         */
+        private int maxAngle = 330;
+
+        /**
+         * 角度容差（度）
+         */
+        private int tolerance = 10;
+
+        /**
+         * 干扰线数量
+         */
+        private int noiseLineCount = 4;
+
+        /**
+         * 干扰点数量
+         */
+        private int noisePointCount = 20;
+
+        /**
+         * 验证码过期时间
+         */
+        private Duration expiryTime = Duration.ofSeconds(120);
+
+        public int getSize() {
+            return size;
+        }
+
+        public void setSize(int size) {
+            this.size = size;
+        }
+
+        public int getMinAngle() {
+            return minAngle;
+        }
+
+        public void setMinAngle(int minAngle) {
+            this.minAngle = minAngle;
+        }
+
+        public int getMaxAngle() {
+            return maxAngle;
+        }
+
+        public void setMaxAngle(int maxAngle) {
+            this.maxAngle = maxAngle;
         }
 
         public int getTolerance() {
