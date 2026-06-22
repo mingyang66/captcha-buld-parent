@@ -6,9 +6,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.eastmoney.emis</groupId>
+        <groupId>com.emily.captcha</groupId>
         <artifactId>captcha-buld-parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
 
     <artifactId>captcha-spring-boot-sample</artifactId>
@@ -21,7 +21,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.eastmoney.emis</groupId>
+            <groupId>com.emily.captcha</groupId>
             <artifactId>captcha-spring-boot-starter</artifactId>
             <version>${project.version}</version>
         </dependency>

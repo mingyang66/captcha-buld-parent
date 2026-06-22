@@ -17,7 +17,6 @@ import java.util.Map;
  * 验证码 REST 接口
  */
 @RestController
-@RequestMapping("/captcha")
 public class CaptchaController {
 
     private final ClickCaptchaService captchaService;
@@ -36,7 +35,7 @@ public class CaptchaController {
      * 获取一个新的验证码
      * GET /captcha/generate
      */
-    @GetMapping("/generate")
+    @GetMapping("/api/captcha/generate")
     public Map<String, Object> generate() {
         ClickCaptcha captcha = captchaService.generate();
 
@@ -59,7 +58,7 @@ public class CaptchaController {
      * POST /captcha/verify
      * Body: { "captchaId": "xxx", "clicks": [{"x":100,"y":80}, ...] }
      */
-    @PostMapping("/verify")
+    @PostMapping("/api/captcha/verify")
     public Map<String, Object> verify(@RequestBody VerifyRequest request) {
         boolean success = captchaService.verify(request.getCaptchaId(), request.getClicks());
 
@@ -75,7 +74,7 @@ public class CaptchaController {
      * 获取一个新的滑动验证码
      * GET /captcha/slider/generate
      */
-    @GetMapping("/slider/generate")
+    @GetMapping("/api/captcha/slider/generate")
     public Map<String, Object> sliderGenerate() {
         SliderCaptcha captcha = sliderCaptchaService.generate();
 
@@ -97,7 +96,7 @@ public class CaptchaController {
      * POST /captcha/slider/verify
      * Body: { "captchaId": "xxx", "x": 150 }
      */
-    @PostMapping("/slider/verify")
+    @PostMapping("/api/captcha/slider/verify")
     public Map<String, Object> sliderVerify(@RequestBody SliderVerifyRequest request) {
         boolean success = sliderCaptchaService.verify(request.getCaptchaId(), request.getX());
 
@@ -113,7 +112,7 @@ public class CaptchaController {
      * 获取一个新的旋转验证码
      * GET /captcha/rotate/generate
      */
-    @GetMapping("/rotate/generate")
+    @GetMapping("/api/captcha/rotate/generate")
     public Map<String, Object> rotateGenerate() {
         RotateCaptcha captcha = rotateCaptchaService.generate();
 
@@ -133,7 +132,7 @@ public class CaptchaController {
      * POST /captcha/rotate/verify
      * Body: { "captchaId": "xxx", "angle": 180 }
      */
-    @PostMapping("/rotate/verify")
+    @PostMapping("/api/captcha/rotate/verify")
     public Map<String, Object> rotateVerify(@RequestBody RotateVerifyRequest request) {
         boolean success = rotateCaptchaService.verify(request.getCaptchaId(), request.getAngle());
 

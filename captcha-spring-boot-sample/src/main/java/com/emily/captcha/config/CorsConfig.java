@@ -16,7 +16,7 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/captcha/**")
+                registry.addMapping("/api/captcha/**")
                         .allowedOriginPatterns("*")
                         .allowedMethods("GET", "POST", "OPTIONS")
                         .allowedHeaders("*")
