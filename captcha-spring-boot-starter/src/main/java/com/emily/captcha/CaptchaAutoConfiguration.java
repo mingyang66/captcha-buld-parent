@@ -9,6 +9,9 @@ import com.emily.captcha.rotate.store.RotateStoreService;
 import com.emily.captcha.slider.service.SliderCaptchaService;
 import com.emily.captcha.slider.store.DefaultSliderStoreServiceImpl;
 import com.emily.captcha.slider.store.SliderStoreService;
+import com.emily.captcha.otp.DefaultOtpStoreServiceImpl;
+import com.emily.captcha.otp.OtpService;
+import com.emily.captcha.otp.OtpStoreService;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -59,6 +62,17 @@ public class CaptchaAutoConfiguration {
     @ConditionalOnMissingBean
     public RotateStoreService rotateStoreService() {
         return new DefaultRotateStoreServiceImpl();
+    }
+
+    @Bean
+    public OtpService otpService(CaptchaProperties properties, OtpStoreService otpStoreService) {
+        return new OtpService(properties, otpStoreService);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public OtpStoreService otpStoreService() {
+        return new DefaultOtpStoreServiceImpl();
     }
 
     /**

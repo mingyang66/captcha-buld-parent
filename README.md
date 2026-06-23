@@ -1,11 +1,12 @@
 # Captcha Spring Boot Starter
 
-基于 Spring Boot 的图形验证码组件，支持 **文字点选**、**滑动解锁**、**旋转验证** 三种验证码类型。
+基于 Spring Boot 的图形验证码组件，支持 **文字点选**、**滑动解锁**、**旋转验证** 三种图形验证码，以及 **OTP双因子认证** 功能。
 
 ## 特性
 
 - 零配置开箱即用，Spring Boot AutoConfiguration 自动装配
-- 三种验证码类型：文字点选 / 滑动解锁 / 旋转验证
+- 三种图形验证码类型：文字点选 / 滑动解锁 / 旋转验证
+- **OTP双因子认证**：基于RFC 6238标准，兼容Google Authenticator等应用
 - 纯 Java AWT 绘制，无第三方图片库依赖
 - 内存存储 + 定时清理过期数据，可自定义存储实现（如 Redis）
 - 完善的配置属性，灵活调整各项参数
@@ -32,13 +33,16 @@ public class CaptchaController {
     private final ClickCaptchaService clickCaptchaService;   // 文字点选
     private final SliderCaptchaService sliderCaptchaService; // 滑动解锁
     private final RotateCaptchaService rotateCaptchaService; // 旋转验证
+    private final OtpService otpService;                     // OTP双因子认证
 
     public CaptchaController(ClickCaptchaService clickCaptchaService,
                              SliderCaptchaService sliderCaptchaService,
-                             RotateCaptchaService rotateCaptchaService) {
+                             RotateCaptchaService rotateCaptchaService,
+                             OtpService otpService) {
         this.clickCaptchaService = clickCaptchaService;
         this.sliderCaptchaService = sliderCaptchaService;
         this.rotateCaptchaService = rotateCaptchaService;
+        this.otpService = otpService;
     }
 }
 ```
@@ -418,6 +422,299 @@ spring.emily.captcha.rotate.expiry-time=PT120S
 
 ---
 
+## 四、OTP 双因子认证
+
+基于 **RFC 6238 (TOTP)** 标准实现的一次性密码验证，兼容 Google Authenticator、Microsoft Authenticator 等主流验证器应用。
+
+### 功能特性
+
+- ✅ 基于时间的一次性密码（TOTP），每30秒刷新
+- ✅ 兼容 Google Authenticator、Microsoft Authenticator 等应用
+- ✅ Base32 编码密钥，支持 QR 码扫描配置
+- ✅ 时间窗口验证，处理时钟不同步问题
+- ✅ 防重放攻击保护，同一时间窗口内OTP只能使用一次
+- ✅ 可配置密码长度、时间步长、哈希算法等参数
+
+### API 接口
+
+#### 生成OTP密钥
+
+为用户生成新的OTP密钥（仅在首次启用时调用）：
+
+```
+POST /api/captcha/otp/secret?account=user@example.com
+```
+
+响应示例：
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "account": "user@example.com",
+    "secret": "JBSWY3DPEHPK3PXP",
+    "otpAuthUri": "otpauth://totp/EmilyCaptcha:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=EmilyCaptcha&algorithm=SHA1&digits=6&period=30"
+  }
+}
+```
+
+| 字段 | 说明 |
+|------|------|
+| `account` | 账户标识 |
+| `secret` | Base32 编码的密钥，用于手动输入到验证器应用 |
+| `otpAuthUri` | OTP Auth URI，用于生成 QR 码 |
+
+#### 检查OTP状态
+
+检查用户是否已启用OTP：
+
+```
+GET /api/captcha/otp/enabled?account=user@example.com
+```
+
+响应示例：
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "account": "user@example.com",
+    "enabled": true
+  }
+}
+```
+
+#### 验证OTP密码
+
+验证用户输入的OTP密码：
+
+```
+POST /api/captcha/otp/verify
+Content-Type: application/json
+```
+
+请求体：
+
+```json
+{
+  "account": "user@example.com",
+  "otp": "123456"
+}
+```
+
+| 字段 | 说明 |
+|------|------|
+| `account` | 账户标识 |
+| `otp` | 6位OTP密码（从验证器应用获取） |
+
+响应示例：
+
+```json
+{ "code": 200, "message": "验证通过" }
+{ "code": 400, "message": "验证失败" }
+```
+
+#### 删除OTP配置
+
+删除用户的OTP配置：
+
+```
+POST /api/captcha/otp/remove?account=user@example.com
+```
+
+响应示例：
+
+```json
+{
+  "code": 200,
+  "message": "OTP已删除"
+}
+```
+
+### 后端使用示例
+
+```java
+@RestController
+public class OtpController {
+
+    private final OtpService otpService;
+
+    public OtpController(OtpService otpService) {
+        this.otpService = otpService;
+    }
+
+    /**
+     * 为用户启用OTP
+     */
+    @PostMapping("/api/otp/enable")
+    public Map<String, Object> enableOtp(@RequestParam String account) {
+        // 生成密钥
+        String secret = otpService.generateSecret(account);
+        
+        // 生成OTP Auth URI（用于生成QR码）
+        String otpAuthUri = otpService.generateOtpAuthUri(account, "YourApp");
+        
+        Map<String, Object> data = new HashMap<>();
+        data.put("secret", secret);
+        data.put("otpAuthUri", otpAuthUri);
+        
+        return Map.of("code", 200, "data", data);
+    }
+
+    /**
+     * 验证OTP（用于登录时的双因子验证）
+     */
+    @PostMapping("/api/otp/verify")
+    public Map<String, Object> verifyOtp(@RequestBody OtpVerifyRequest request) {
+        boolean success = otpService.verify(request.getAccount(), request.getOtp());
+        
+        return Map.of("code", success ? 200 : 400,
+                      "message", success ? "验证通过" : "验证失败");
+    }
+
+    /**
+     * 用户登录时结合OTP验证
+     */
+    @PostMapping("/api/login")
+    public Map<String, Object> login(@RequestBody LoginRequest request) {
+        // 1. 验证用户名密码
+        if (!validatePassword(request.getAccount(), request.getPassword())) {
+            return Map.of("code", 400, "message", "用户名或密码错误");
+        }
+        
+        // 2. 如果启用了OTP，验证OTP密码
+        if (otpService.isEnabled(request.getAccount())) {
+            if (!otpService.verify(request.getAccount(), request.getOtp())) {
+                return Map.of("code", 400, "message", "OTP验证失败");
+            }
+        }
+        
+        // 3. 登录成功
+        return Map.of("code", 200, "message", "登录成功");
+    }
+}
+```
+
+### 配置项
+
+#### OTP双因子认证配置
+
+```properties
+# ========== 密码配置 ==========
+# OTP密码长度（位数），默认 6
+# 常用值：6 或 8
+spring.emily.captcha.otp.code-length=6
+
+# ========== 时间配置 ==========
+# 时间步长（秒），即OTP刷新周期，默认 30 秒
+# ISO-8601 Duration 格式：PT30S（30秒）、PT1M（1分钟）
+spring.emily.captcha.otp.time-step=PT30S
+
+# 时间窗口大小，默认 1
+# 允许前后 N 个时间窗口的OTP都有效，用于处理时钟不同步
+# 设置为 1 表示：当前窗口 + 前1个窗口 + 后1个窗口 = 共3个窗口有效
+spring.emily.captcha.otp.window-size=1
+
+# ========== 密钥配置 ==========
+# 密钥长度（字节），默认 20 字节（160位）
+# 建议值：20（160位）或 32（256位）
+spring.emily.captcha.otp.secret-key-length=20
+
+# ========== 算法配置 ==========
+# HMAC 哈希算法，默认 HmacSHA1
+# 可选值：HmacSHA1、HmacSHA256、HmacSHA512
+spring.emily.captcha.otp.algorithm=HmacSHA1
+```
+
+### 用户配置流程
+
+#### 方式一：扫描二维码（推荐）
+
+1. 调用 `/api/captcha/otp/secret` 接口生成密钥
+2. 使用返回的 `otpAuthUri` 生成 QR 码
+3. 用户打开 Google Authenticator 等应用
+4. 点击"+" → "扫描二维码" → 扫描 QR 码
+5. 验证器应用自动添加账户并开始生成OTP
+
+#### 方式二：手动输入密钥
+
+1. 调用 `/api/captcha/otp/secret` 接口生成密钥
+2. 将返回的 `secret` 展示给用户
+3. 用户打开验证器应用
+4. 点击"+" → "手动输入密钥"
+5. 输入账户标识和密钥字符串
+6. 验证器应用开始生成OTP
+
+### 生成QR码示例
+
+#### 使用前端JavaScript
+
+```javascript
+// 使用 QR Server API 生成QR码
+const otpAuthUri = 'otpauth://totp/YourApp:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=YourApp';
+const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(otpAuthUri)}`;
+
+// 在页面中显示
+document.getElementById('qrCode').src = qrCodeUrl;
+```
+
+#### 使用Java后端（ZXing库）
+
+```xml
+<dependency>
+    <groupId>com.google.zxing</groupId>
+    <artifactId>core</artifactId>
+    <version>3.5.2</version>
+</dependency>
+<dependency>
+    <groupId>com.google.zxing</groupId>
+    <artifactId>javase</artifactId>
+    <version>3.5.2</version>
+</dependency>
+```
+
+```java
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+
+public byte[] generateQrCode(String otpAuthUri, int size) throws WriterException, IOException {
+    QRCodeWriter qrCodeWriter = new QRCodeWriter();
+    BitMatrix bitMatrix = qrCodeWriter.encode(otpAuthUri, BarcodeFormat.QR_CODE, size, size);
+    
+    ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
+    MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
+    
+    return pngOutputStream.toByteArray();
+}
+```
+
+### 自定义存储实现
+
+默认使用内存存储OTP会话。如需使用Redis等持久化方案：
+
+```java
+@Bean
+public OtpStoreService otpStoreService(RedisTemplate<String, Object> redisTemplate) {
+    return new RedisOtpStoreServiceImpl(redisTemplate);
+}
+```
+
+### 安全建议
+
+1. **密钥保护**：OTP密钥等同于密码，必须安全存储和传输
+2. **HTTPS传输**：所有OTP相关接口必须使用HTTPS
+3. **时钟同步**：服务器应使用NTP同步时间，确保时间准确
+4. **备份方案**：为用户提供备份码，防止手机丢失无法登录
+5. **速率限制**：对OTP验证接口实施速率限制，防止暴力破解
+6. **日志审计**：记录OTP验证失败事件，监控异常行为
+
+---
+
 ## 全局配置
 
 ```properties
@@ -446,6 +743,11 @@ public SliderStoreService sliderStoreService() {
 @Bean
 public RotateStoreService rotateStoreService() {
     return new RedisRotateStoreServiceImpl(redisTemplate);
+}
+
+@Bean
+public OtpStoreService otpStoreService() {
+    return new RedisOtpStoreServiceImpl(redisTemplate);
 }
 ```
 
@@ -486,11 +788,12 @@ cd captcha-spring-boot-sample
 mvn spring-boot:run
 ```
 
-访问以下页面体验三种验证码：
+访问以下页面体验四种验证方式：
 
 - 文字点选：http://localhost:8080/index.html
 - 滑动解锁：http://localhost:8080/slider.html
 - 旋转验证：http://localhost:8080/rotate.html
+- **OTP双因子认证**：http://localhost:8080/otp.html
 
 ## 环境要求
 
