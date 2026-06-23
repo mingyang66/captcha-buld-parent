@@ -1,4 +1,4 @@
-package com.emily.captcha.otp;
+package com.emily.captcha.otp.store;
 
 import java.util.concurrent.ConcurrentHashMap;
 

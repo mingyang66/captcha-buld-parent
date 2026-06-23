@@ -1,6 +1,10 @@
-package com.emily.captcha.otp;
+package com.emily.captcha.otp.service;
 
 import com.emily.captcha.CaptchaProperties;
+import com.emily.captcha.otp.OtpAlgorithm;
+import com.emily.captcha.otp.OtpSecretGenerator;
+import com.emily.captcha.otp.store.OtpSession;
+import com.emily.captcha.otp.store.OtpStoreService;
 
 import java.util.Objects;
 

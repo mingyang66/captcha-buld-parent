@@ -1,4 +1,4 @@
-package com.emily.captcha.otp;
+package com.emily.captcha.otp.store;
 
 /**
  * OTP会话存储服务接口

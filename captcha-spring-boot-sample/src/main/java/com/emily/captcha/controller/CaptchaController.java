@@ -7,7 +7,7 @@ import com.emily.captcha.rotate.model.RotateCaptcha;
 import com.emily.captcha.rotate.service.RotateCaptchaService;
 import com.emily.captcha.slider.model.SliderCaptcha;
 import com.emily.captcha.slider.service.SliderCaptchaService;
-import com.emily.captcha.otp.OtpService;
+import com.emily.captcha.otp.service.OtpService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -175,9 +175,9 @@ public class CaptchaController {
 
     /**
      * 获取用户的OTP密钥
-     * GET /api/captcha/otp/secret?account=user@example.com
+     * GET /api/captcha/otp/getOtpSecret?account=user@example.com
      */
-    @GetMapping("/api/captcha/otp/secret")
+    @GetMapping("/api/captcha/otp/getOtpSecret")
     public Map<String, Object> getOtpSecret(@RequestParam String account) {
         String secret = otpService.getSecret(account);
 
