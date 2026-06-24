@@ -159,7 +159,7 @@ public class CaptchaController {
     @PostMapping("/api/captcha/otp/secret")
     public Map<String, Object> generateOtpSecret(@RequestParam String account) {
         String secret = otpService.generateSecret(account);
-        String otpAuthUri = otpService.generateOtpAuthUri(account, "EmilyCaptcha");
+        String otpAuthUri = otpService.generateOtpAuthUri(account, "LIME");
 
         Map<String, Object> result = new HashMap<>();
         result.put("code", 200);

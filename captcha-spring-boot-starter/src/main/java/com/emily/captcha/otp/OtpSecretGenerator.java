@@ -1,7 +1,6 @@
 package com.emily.captcha.otp;
 
 import java.security.SecureRandom;
-import java.util.Base64;
 
 /**
  * OTP密钥生成器
@@ -10,7 +9,14 @@ import java.util.Base64;
  */
 public class OtpSecretGenerator {
 
+    /**
+     * Base32编码字符表（RFC 4648）
+     */
     private static final String BASE32_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+
+    /**
+     * 安全的随机数生成器
+     */
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     /**
@@ -106,14 +112,46 @@ public class OtpSecretGenerator {
 
     /**
      * 生成QR码的URI（用于Google Authenticator等应用扫描）
+     * <p>
+     * 遵循 otpauth URI格式规范
      *
-     * @param secret  Base32编码的密钥
-     * @param account 账户标识（通常是邮箱或用户名）
-     * @param issuer  发行方标识（通常是公司或应用名称）
+     * @param secret    Base32编码的密钥
+     * @param account   账户标识（通常是邮箱或用户名）
+     * @param issuer    发行方标识（通常是公司或应用名称）
+     * @param algorithm 哈希算法枚举
+     * @param digits    密码位数
+     * @param period    时间步长（秒）
      * @return OTP Auth URI
      */
-    public static String generateOtpAuthUri(String secret, String account, String issuer) {
-        return String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=6&period=30",
-                issuer, account, secret, issuer, "SHA1");
+    public static String generateOtpAuthUri(String secret, String account, String issuer,
+                                            OtpHashAlgorithm algorithm, int digits, int period) {
+        return String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d",
+                encodeUriComponent(issuer), encodeUriComponent(account),
+                secret, encodeUriComponent(issuer), algorithm.getUriAlgorithm(), digits, period);
+    }
+
+    /**
+     * 简单的URI编码（用于otpauth URI）
+     */
+    private static String encodeUriComponent(String component) {
+        return component.replace(" ", "%20")
+                .replace("!", "%21")
+                .replace("#", "%23")
+                .replace("$", "%24")
+                .replace("&", "%26")
+                .replace("'", "%27")
+                .replace("(", "%28")
+                .replace(")", "%29")
+                .replace("*", "%2A")
+                .replace("+", "%2B")
+                .replace(",", "%2C")
+                .replace("/", "%2F")
+                .replace(":", "%3A")
+                .replace(";", "%3B")
+                .replace("=", "%3D")
+                .replace("?", "%3F")
+                .replace("@", "%40")
+                .replace("[", "%5B")
+                .replace("]", "%5D");
     }
 }

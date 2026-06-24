@@ -1,5 +1,7 @@
 package com.emily.captcha.otp.store;
 
+import java.util.Objects;
+
 /**
  * OTP会话数据
  * <p>
@@ -91,5 +93,28 @@ public class OtpSession {
 
     public void setLastUsedAt(long lastUsedAt) {
         this.lastUsedAt = lastUsedAt;
+    }
+
+    @Override
+    public String toString() {
+        return "OtpSession{" +
+                "account='" + account + '\'' +
+                ", verified=" + verified +
+                ", lastVerifiedAt=" + lastVerifiedAt +
+                ", lastUsedAt=" + lastUsedAt +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        OtpSession that = (OtpSession) o;
+        return Objects.equals(account, that.account);
+    }
+
+    @Override
+    public int hashCode() {
+        return account != null ? account.hashCode() : 0;
     }
 }

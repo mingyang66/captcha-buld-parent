@@ -2,6 +2,7 @@ package com.emily.captcha.otp.service;
 
 import com.emily.captcha.CaptchaProperties;
 import com.emily.captcha.otp.OtpAlgorithm;
+import com.emily.captcha.otp.OtpHashAlgorithm;
 import com.emily.captcha.otp.OtpSecretGenerator;
 import com.emily.captcha.otp.store.OtpSession;
 import com.emily.captcha.otp.store.OtpStoreService;
@@ -39,9 +40,15 @@ public class OtpService {
      *
      * @param account 账户标识（用户名或邮箱）
      * @return Base32编码的OTP密钥
+     * @throws IllegalArgumentException 如果账户标识为空
      */
     public String generateSecret(String account) {
         Objects.requireNonNull(account, "账户标识不能为空");
+
+        // 如果已经启用OTP，不再生成新密钥
+        if (isEnabled(account)) {
+            throw new IllegalStateException("账户 " + account + " 已启用OTP，无需重复生成");
+        }
 
         // 生成Base32编码的密钥
         String secret = OtpSecretGenerator.generateBase32Secret(properties.getOtp().getSecretKeyLength());
@@ -72,6 +79,7 @@ public class OtpService {
      * @param account 账户标识
      * @param otp     用户输入的OTP密码
      * @return true=验证通过，false=验证失败
+     * @throws IllegalArgumentException 如果参数为空
      */
     public boolean verify(String account, String otp) {
         Objects.requireNonNull(account, "账户标识不能为空");
@@ -89,10 +97,11 @@ public class OtpService {
         }
 
         // 获取配置参数
-        long timeStep = properties.getOtp().getTimeStep().getSeconds();
-        int windowSize = properties.getOtp().getWindowSize();
-        int codeLength = properties.getOtp().getCodeLength();
-        String algorithm = properties.getOtp().getAlgorithm();
+        CaptchaProperties.Otp otpConfig = properties.getOtp();
+        long timeStep = otpConfig.getTimeStep().getSeconds();
+        int windowSize = otpConfig.getWindowSize();
+        int codeLength = otpConfig.getCodeLength();
+        OtpHashAlgorithm algorithm = otpConfig.getAlgorithm();
 
         // 验证OTP密码
         boolean isValid = OtpAlgorithm.verifyTotp(
@@ -102,7 +111,7 @@ public class OtpService {
         if (isValid) {
             // 防重放攻击检查：同一时间窗口内的OTP只能使用一次
             long currentTimeWindow = System.currentTimeMillis() / (timeStep * 1000);
-            long lastUsedWindow = session.getLastUsedAt() / (timeStep * 1000);
+            long lastUsedWindow = session.getLastUsedAt() > 0 ? session.getLastUsedAt() / (timeStep * 1000) : -1;
 
             if (currentTimeWindow == lastUsedWindow && Objects.equals(otp, session.getLastUsedOtp())) {
                 return false; // OTP已被使用过
@@ -134,7 +143,13 @@ public class OtpService {
             return null;
         }
 
-        return OtpSecretGenerator.generateOtpAuthUri(secret, account, issuer);
+        CaptchaProperties.Otp otpConfig = properties.getOtp();
+        return OtpSecretGenerator.generateOtpAuthUri(
+                secret, account, issuer,
+                otpConfig.getAlgorithm(),
+                otpConfig.getCodeLength(),
+                (int) otpConfig.getTimeStep().getSeconds()
+        );
     }
 
     /**

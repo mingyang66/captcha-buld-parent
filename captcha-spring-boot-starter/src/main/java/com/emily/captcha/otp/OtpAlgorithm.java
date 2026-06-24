@@ -16,6 +16,9 @@ import java.util.Objects;
  * 其中：
  * - K 是共享密钥
  * - T 是时间计数（当前时间戳 / 时间步长）
+ *
+ * @author Emily
+ * @since 1.0.0
  */
 public class OtpAlgorithm {
 
@@ -26,10 +29,10 @@ public class OtpAlgorithm {
      * @param timestamp  当前时间戳（毫秒）
      * @param timeStep   时间步长（秒）
      * @param codeLength 密码长度
-     * @param algorithm  哈希算法（HmacSHA1/HmacSHA256/HmacSHA512）
+     * @param algorithm  哈希算法枚举
      * @return TOTP密码字符串
      */
-    public static String generateTotp(String secret, long timestamp, long timeStep, int codeLength, String algorithm) {
+    public static String generateTotp(String secret, long timestamp, long timeStep, int codeLength, OtpHashAlgorithm algorithm) {
         // 1. 解码Base32密钥
         byte[] key = OtpSecretGenerator.decodeBase32(secret);
 
@@ -37,25 +40,7 @@ public class OtpAlgorithm {
         long timeCounter = timestamp / (timeStep * 1000);
 
         // 3. 生成HOTP
-        return generateHotp(key, timeCounter, codeLength, algorithm);
-    }
-
-    /**
-     * 根据时间戳生成TOTP密码（字节数组密钥）
-     *
-     * @param secret     共享密钥（字节数组）
-     * @param timestamp  当前时间戳（毫秒）
-     * @param timeStep   时间步长（秒）
-     * @param codeLength 密码长度
-     * @param algorithm  哈希算法
-     * @return TOTP密码字符串
-     */
-    public static String generateTotp(byte[] secret, long timestamp, long timeStep, int codeLength, String algorithm) {
-        // 1. 计算时间计数
-        long timeCounter = timestamp / (timeStep * 1000);
-
-        // 2. 生成HOTP
-        return generateHotp(secret, timeCounter, codeLength, algorithm);
+        return generateOtp(key, timeCounter, codeLength, algorithm);
     }
 
     /**
@@ -66,17 +51,17 @@ public class OtpAlgorithm {
      * @param key        共享密钥
      * @param counter    计数器
      * @param codeLength 密码长度
-     * @param algorithm  哈希算法
+     * @param algorithm  哈希算法名称
      * @return HOTP密码字符串
      */
-    private static String generateHotp(byte[] key, long counter, int codeLength, String algorithm) {
+    private static String generateOtp(byte[] key, long counter, int codeLength, OtpHashAlgorithm algorithm) {
         try {
             // 1. 将计数器转换为8字节数组（大端序）
             byte[] counterBytes = ByteBuffer.allocate(8).putLong(counter).array();
 
             // 2. 计算HMAC
-            Mac mac = Mac.getInstance(algorithm);
-            SecretKeySpec keySpec = new SecretKeySpec(key, algorithm);
+            Mac mac = Mac.getInstance(algorithm.getJavaAlgorithm());
+            SecretKeySpec keySpec = new SecretKeySpec(key, algorithm.getJavaAlgorithm());
             mac.init(keySpec);
             byte[] hmacResult = mac.doFinal(counterBytes);
 
@@ -94,12 +79,23 @@ public class OtpAlgorithm {
             return String.format("%0" + codeLength + "d", otp);
 
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new RuntimeException("OTP生成失败: " + e.getMessage(), e);
+            throw new OtpException("OTP生成失败: " + e.getMessage(), e);
         }
     }
 
     /**
-     * 验证TOTP密码
+     * OTP异常类
+     */
+    public static class OtpException extends RuntimeException {
+
+        public OtpException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
+
+    /**
+     * 验证TOTP密码（使用字符串算法名称）
      *
      * @param secret     共享密钥（Base32编码）
      * @param otp        用户输入的OTP密码
@@ -107,11 +103,11 @@ public class OtpAlgorithm {
      * @param timeStep   时间步长（秒）
      * @param windowSize 时间窗口大小
      * @param codeLength 密码长度
-     * @param algorithm  哈希算法
+     * @param algorithm  哈希算法名称
      * @return true=验证通过，false=验证失败
      */
     public static boolean verifyTotp(String secret, String otp, long timestamp, long timeStep,
-                                     int windowSize, int codeLength, String algorithm) {
+                                     int windowSize, int codeLength, OtpHashAlgorithm algorithm) {
         Objects.requireNonNull(secret, "密钥不能为空");
         Objects.requireNonNull(otp, "OTP密码不能为空");
 

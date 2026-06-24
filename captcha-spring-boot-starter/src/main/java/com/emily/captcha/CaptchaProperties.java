@@ -1,5 +1,6 @@
 package com.emily.captcha;
 
+import com.emily.captcha.otp.OtpHashAlgorithm;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
@@ -407,11 +408,11 @@ public class CaptchaProperties {
         private int secretKeyLength = 20;
 
         /**
-         * 哈希算法（默认HmacSHA1）
+         * 哈希算法（默认HMAC_SHA1）
          * <p>
-         * 可选值：HmacSHA1, HmacSHA256, HmacSHA512
+         * 可选值：HMAC_SHA1, HMAC_SHA256, HMAC_SHA512
          */
-        private String algorithm = "HmacSHA1";
+        private OtpHashAlgorithm algorithm = OtpHashAlgorithm.HMAC_SHA1;
 
         public int getCodeLength() {
             return codeLength;
@@ -445,11 +446,11 @@ public class CaptchaProperties {
             this.secretKeyLength = secretKeyLength;
         }
 
-        public String getAlgorithm() {
+        public OtpHashAlgorithm getAlgorithm() {
             return algorithm;
         }
 
-        public void setAlgorithm(String algorithm) {
+        public void setAlgorithm(OtpHashAlgorithm algorithm) {
             this.algorithm = algorithm;
         }
     }

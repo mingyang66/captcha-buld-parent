@@ -3,15 +3,15 @@ package com.emily.captcha;
 import com.emily.captcha.click.service.ClickCaptchaService;
 import com.emily.captcha.click.store.ClickStoreService;
 import com.emily.captcha.click.store.DefaultClickStoreServiceImpl;
+import com.emily.captcha.otp.service.OtpService;
+import com.emily.captcha.otp.store.DefaultOtpStoreServiceImpl;
+import com.emily.captcha.otp.store.OtpStoreService;
 import com.emily.captcha.rotate.service.RotateCaptchaService;
 import com.emily.captcha.rotate.store.DefaultRotateStoreServiceImpl;
 import com.emily.captcha.rotate.store.RotateStoreService;
 import com.emily.captcha.slider.service.SliderCaptchaService;
 import com.emily.captcha.slider.store.DefaultSliderStoreServiceImpl;
 import com.emily.captcha.slider.store.SliderStoreService;
-import com.emily.captcha.otp.store.DefaultOtpStoreServiceImpl;
-import com.emily.captcha.otp.service.OtpService;
-import com.emily.captcha.otp.store.OtpStoreService;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -85,13 +85,16 @@ public class CaptchaAutoConfiguration {
         private final ClickStoreService storeService;
         private final SliderStoreService sliderStoreService;
         private final RotateStoreService rotateStoreService;
+        private final OtpStoreService otpStoreService;
 
         CaptchaCleanupConfiguration(ClickStoreService storeService,
                                     SliderStoreService sliderStoreService,
-                                    RotateStoreService rotateStoreService) {
+                                    RotateStoreService rotateStoreService,
+                                    OtpStoreService otpStoreService) {
             this.storeService = storeService;
             this.sliderStoreService = sliderStoreService;
             this.rotateStoreService = rotateStoreService;
+            this.otpStoreService = otpStoreService;
         }
 
         @Scheduled(fixedDelay = 60_000)
@@ -99,6 +102,7 @@ public class CaptchaAutoConfiguration {
             storeService.cleanExpired();
             sliderStoreService.cleanExpired();
             rotateStoreService.cleanExpired();
+            otpStoreService.cleanExpired();
         }
     }
 }
