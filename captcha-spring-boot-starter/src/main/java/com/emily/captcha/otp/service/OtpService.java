@@ -137,7 +137,7 @@ public class OtpService {
                 secret, account, issuer,
                 otpConfig.getAlgorithm(),
                 otpConfig.getCodeLength(),
-                (int) otpConfig.getTimeStep().getSeconds()
+                otpConfig.getTimeStep().getSeconds()
         );
     }
 

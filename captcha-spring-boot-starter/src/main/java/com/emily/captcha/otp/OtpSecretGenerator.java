@@ -124,7 +124,7 @@ public class OtpSecretGenerator {
      * @return OTP Auth URI
      */
     public static String generateOtpAuthUri(String secret, String account, String issuer,
-                                            OtpHashAlgorithm algorithm, int digits, int period) {
+                                            OtpHashAlgorithm algorithm, int digits, long period) {
         return String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=%s&digits=%d&period=%d",
                 encodeUriComponent(issuer), encodeUriComponent(account),
                 secret, encodeUriComponent(issuer), algorithm.getUriAlgorithm(), digits, period);
