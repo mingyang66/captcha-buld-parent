@@ -50,8 +50,7 @@ public class OtpService {
         // 生成Base32编码的密钥
         String secret = OtpSecretGenerator.generateBase32Secret(properties.getOtp().getSecretKeyLength());
         // 创建并存储会话
-        OtpSession session = new OtpSession(secret, account);
-        otpStoreService.put(account, session);
+        otpStoreService.put(account, new OtpSession(secret, account));
 
         return secret;
     }
