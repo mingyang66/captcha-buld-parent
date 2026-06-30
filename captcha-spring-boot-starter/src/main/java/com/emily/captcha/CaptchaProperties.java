@@ -412,7 +412,7 @@ public class CaptchaProperties {
          * <p>
          * 可选值：HMAC_SHA1, HMAC_SHA256, HMAC_SHA512
          */
-        private OtpHashAlgorithm algorithm = OtpHashAlgorithm.HMAC_SHA1;
+        private OtpHashAlgorithm algorithm = OtpHashAlgorithm.HMAC_SHA256;
 
         public int getCodeLength() {
             return codeLength;

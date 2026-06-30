@@ -22,7 +22,6 @@ public class OtpService {
      * 验证码配置属性
      */
     private final CaptchaProperties properties;
-
     /**
      * OTP会话存储服务
      */
@@ -44,15 +43,12 @@ public class OtpService {
      */
     public String generateSecret(String account) {
         Objects.requireNonNull(account, "账户标识不能为空");
-
         // 如果已经启用OTP，不再生成新密钥
         if (isEnabled(account)) {
             throw new IllegalStateException("账户 " + account + " 已启用OTP，无需重复生成");
         }
-
         // 生成Base32编码的密钥
         String secret = OtpSecretGenerator.generateBase32Secret(properties.getOtp().getSecretKeyLength());
-
         // 创建并存储会话
         OtpSession session = new OtpSession(secret, account);
         otpStoreService.put(account, session);
@@ -84,25 +80,21 @@ public class OtpService {
     public boolean verify(String account, String otp) {
         Objects.requireNonNull(account, "账户标识不能为空");
         Objects.requireNonNull(otp, "OTP密码不能为空");
-
         // 获取用户的OTP会话
         OtpSession session = otpStoreService.get(account);
         if (session == null) {
             return false;
         }
-
         String secret = session.getSecret();
         if (secret == null || secret.isEmpty()) {
             return false;
         }
-
         // 获取配置参数
         CaptchaProperties.Otp otpConfig = properties.getOtp();
         long timeStep = otpConfig.getTimeStep().getSeconds();
         int windowSize = otpConfig.getWindowSize();
         int codeLength = otpConfig.getCodeLength();
         OtpHashAlgorithm algorithm = otpConfig.getAlgorithm();
-
         // 验证OTP密码
         boolean isValid = OtpAlgorithm.verifyTotp(
                 secret, otp, System.currentTimeMillis(),
@@ -112,11 +104,9 @@ public class OtpService {
             // 防重放攻击检查：同一时间窗口内的OTP只能使用一次
             long currentTimeWindow = System.currentTimeMillis() / (timeStep * 1000);
             long lastUsedWindow = session.getLastUsedAt() > 0 ? session.getLastUsedAt() / (timeStep * 1000) : -1;
-
             if (currentTimeWindow == lastUsedWindow && Objects.equals(otp, session.getLastUsedOtp())) {
                 return false; // OTP已被使用过
             }
-
             // 更新会话状态
             session.setLastUsedOtp(otp);
             session.setLastUsedAt(System.currentTimeMillis());
