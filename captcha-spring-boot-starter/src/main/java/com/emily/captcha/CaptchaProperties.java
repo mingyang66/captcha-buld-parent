@@ -1,7 +1,5 @@
 package com.emily.captcha;
 
-import com.emily.captcha.otp.OtpAlgorithm;
-import com.emily.captcha.otp.OtpHashAlgorithm;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
@@ -31,10 +29,6 @@ public class CaptchaProperties {
      * 旋转验证码配置
      */
     private Rotate rotate = new Rotate();
-    /**
-     * OTP一次性密码配置
-     */
-    private Otp otp = new Otp();
 
     public boolean isEnabled() {
         return enabled;
@@ -66,14 +60,6 @@ public class CaptchaProperties {
 
     public void setRotate(Rotate rotate) {
         this.rotate = rotate;
-    }
-
-    public Otp getOtp() {
-        return otp;
-    }
-
-    public void setOtp(Otp otp) {
-        this.otp = otp;
     }
 
     public static class Click {
@@ -382,79 +368,6 @@ public class CaptchaProperties {
 
         public void setExpiryTime(Duration expiryTime) {
             this.expiryTime = expiryTime;
-        }
-    }
-
-    // ---------- OTP一次性密码配置 ----------
-
-    public static class Otp {
-        /**
-         * OTP密码长度（默认6位）
-         */
-        private int codeLength = 6;
-
-        /**
-         * 时间步长（默认30秒），生成器刷新周期
-         */
-        private Duration timeStep = Duration.ofSeconds(30);
-
-        /**
-         * 允许的时间窗口偏移（默认3），用于处理时钟不同步
-         */
-        private int windowSize = 1;
-
-        /**
-         * 密钥长度（字节），默认32字节（256位）
-         * <p>
-         * RFC 6238 推荐值：SHA1=20, SHA256=32, SHA512=64
-         */
-        private int secretKeyLength = 20;
-
-        /**
-         * 哈希算法（默认HMAC_SHA256）
-         * <p>
-         * 可选值：HMAC_SHA1, HMAC_SHA256, HMAC_SHA512
-         */
-        private OtpHashAlgorithm algorithm = OtpHashAlgorithm.HMAC_SHA1;
-
-        public int getCodeLength() {
-            return codeLength;
-        }
-
-        public void setCodeLength(int codeLength) {
-            this.codeLength = codeLength;
-        }
-
-        public Duration getTimeStep() {
-            return timeStep;
-        }
-
-        public void setTimeStep(Duration timeStep) {
-            this.timeStep = timeStep;
-        }
-
-        public int getWindowSize() {
-            return windowSize;
-        }
-
-        public void setWindowSize(int windowSize) {
-            this.windowSize = windowSize;
-        }
-
-        public int getSecretKeyLength() {
-            return secretKeyLength;
-        }
-
-        public void setSecretKeyLength(int secretKeyLength) {
-            this.secretKeyLength = secretKeyLength;
-        }
-
-        public OtpHashAlgorithm getAlgorithm() {
-            return algorithm;
-        }
-
-        public void setAlgorithm(OtpHashAlgorithm algorithm) {
-            this.algorithm = algorithm;
         }
     }
 }

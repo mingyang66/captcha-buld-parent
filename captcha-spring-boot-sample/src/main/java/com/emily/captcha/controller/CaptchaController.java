@@ -7,11 +7,9 @@ import com.emily.captcha.rotate.model.RotateCaptcha;
 import com.emily.captcha.rotate.service.RotateCaptchaService;
 import com.emily.captcha.slider.model.SliderCaptcha;
 import com.emily.captcha.slider.service.SliderCaptchaService;
-import com.emily.captcha.otp.OtpGenerator;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
@@ -27,16 +25,13 @@ public class CaptchaController {
     private final ClickCaptchaService captchaService;
     private final SliderCaptchaService sliderCaptchaService;
     private final RotateCaptchaService rotateCaptchaService;
-    private final OtpGenerator otpService;
 
     public CaptchaController(ClickCaptchaService captchaService,
                              SliderCaptchaService sliderCaptchaService,
-                             RotateCaptchaService rotateCaptchaService,
-                             OtpGenerator otpService) {
+                             RotateCaptchaService rotateCaptchaService) {
         this.captchaService = captchaService;
         this.sliderCaptchaService = sliderCaptchaService;
         this.rotateCaptchaService = rotateCaptchaService;
-        this.otpService = otpService;
     }
 
     /**
@@ -150,97 +145,6 @@ public class CaptchaController {
         return result;
     }
 
-    // ==================== OTP一次性密码接口 ====================
-
-    /**
-     * 为用户生成OTP密钥
-     * POST /api/captcha/otp/secret?account=user@example.com
-     */
-    @PostMapping("/api/captcha/otp/secret")
-    public Map<String, Object> generateOtpSecret(@RequestParam String account) {
-        String secret = otpService.generateSecret(account);
-        String otpAuthUri = otpService.generateOtpAuthUri(account, "LIME");
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("code", 200);
-        result.put("message", "success");
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("account", account);
-        data.put("secret", secret);
-        data.put("otpAuthUri", otpAuthUri);
-        result.put("data", data);
-        return result;
-    }
-
-    /**
-     * 获取用户的OTP密钥
-     * GET /api/captcha/otp/getOtpSecret?account=user@example.com
-     */
-    @GetMapping("/api/captcha/otp/getOtpSecret")
-    public Map<String, Object> getOtpSecret(@RequestParam String account) {
-        String secret = otpService.getSecret(account);
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("code", 200);
-        result.put("message", "success");
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("account", account);
-        data.put("secret", secret);
-        data.put("enabled", secret != null);
-        result.put("data", data);
-        return result;
-    }
-
-    /**
-     * 验证OTP密码
-     * POST /api/captcha/otp/verify
-     * Body: { "account": "user@example.com", "otp": "123456" }
-     */
-    @PostMapping("/api/captcha/otp/verify")
-    public Map<String, Object> verifyOtp(@RequestBody OtpVerifyRequest request) {
-        boolean success = otpService.verify(request.getAccount(), request.getOtp());
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("code", success ? 200 : 400);
-        result.put("message", success ? "验证通过" : "验证失败");
-        return result;
-    }
-
-    /**
-     * 检查用户是否已启用OTP
-     * GET /api/captcha/otp/enabled?account=user@example.com
-     */
-    @GetMapping("/api/captcha/otp/enabled")
-    public Map<String, Object> checkOtpEnabled(@RequestParam String account) {
-        boolean enabled = otpService.isEnabled(account);
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("code", 200);
-        result.put("message", "success");
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("account", account);
-        data.put("enabled", enabled);
-        result.put("data", data);
-        return result;
-    }
-
-    /**
-     * 删除用户的OTP配置
-     * DELETE /api/captcha/otp?account=user@example.com
-     */
-    @PostMapping("/api/captcha/otp/remove")
-    public Map<String, Object> removeOtp(@RequestParam String account) {
-        otpService.remove(account);
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("code", 200);
-        result.put("message", "OTP已删除");
-        return result;
-    }
-
     /**
      * 校验请求体
      */
@@ -310,30 +214,6 @@ public class CaptchaController {
 
         public void setAngle(int angle) {
             this.angle = angle;
-        }
-    }
-
-    /**
-     * OTP验证码校验请求体
-     */
-    public static class OtpVerifyRequest {
-        private String account;
-        private String otp;
-
-        public String getAccount() {
-            return account;
-        }
-
-        public void setAccount(String account) {
-            this.account = account;
-        }
-
-        public String getOtp() {
-            return otp;
-        }
-
-        public void setOtp(String otp) {
-            this.otp = otp;
         }
     }
 }
